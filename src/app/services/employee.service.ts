@@ -29,16 +29,16 @@ export class EmployeeService {
 
     // Mock employees
     const employees: Employee[] = [
-      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john.doe@company.com', position: 'CEO', departmentId: 1, hireDate: new Date('2018-01-15'), salary: 150000, status: 'active' },
-      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane.smith@company.com', position: 'Engineering Manager', departmentId: 1, hireDate: new Date('2019-03-20'), salary: 120000, status: 'active', managerId: 1 },
-      { id: 3, firstName: 'Mike', lastName: 'Johnson', email: 'mike.johnson@company.com', position: 'Senior Developer', departmentId: 1, hireDate: new Date('2020-05-10'), salary: 95000, status: 'active', managerId: 2 },
+      { id: 1, firstName: 'Agni', lastName: 'Klepth', email: 'agni.klepth@company.com', position: 'CEO', departmentId: 1, hireDate: new Date('2018-01-15'), salary: 150000, status: 'active' },
+      { id: 2, firstName: 'Deoxys', lastName: 'Kumar', email: 'deoxys.kumar@company.com', position: 'Engineering Manager', departmentId: 1, hireDate: new Date('2019-03-20'), salary: 120000, status: 'active', managerId: 1 },
+      { id: 3, firstName: 'Mike', lastName: 'Manu', email: 'mike.manu@company.com', position: 'Senior Developer', departmentId: 1, hireDate: new Date('2020-05-10'), salary: 95000, status: 'active', managerId: 2 },
       { id: 4, firstName: 'Sarah', lastName: 'Williams', email: 'sarah.williams@company.com', position: 'Full Stack Developer', departmentId: 1, hireDate: new Date('2021-02-14'), salary: 85000, status: 'active', managerId: 2 },
       { id: 5, firstName: 'David', lastName: 'Brown', email: 'david.brown@company.com', position: 'Sales Manager', departmentId: 2, hireDate: new Date('2019-07-01'), salary: 110000, status: 'active', managerId: 1 },
-      { id: 6, firstName: 'Emily', lastName: 'Davis', email: 'emily.davis@company.com', position: 'Sales Representative', departmentId: 2, hireDate: new Date('2021-09-15'), salary: 65000, status: 'active', managerId: 5 },
+      { id: 6, firstName: 'Abdul', lastName: 'Krishna', email: 'abdul.krishna@company.com', position: 'Sales Representative', departmentId: 2, hireDate: new Date('2021-09-15'), salary: 65000, status: 'active', managerId: 5 },
       { id: 7, firstName: 'Robert', lastName: 'Miller', email: 'robert.miller@company.com', position: 'Junior Developer', departmentId: 1, hireDate: new Date('2022-01-10'), salary: 70000, status: 'active', managerId: 2 },
       { id: 8, firstName: 'Lisa', lastName: 'Wilson', email: 'lisa.wilson@company.com', position: 'Marketing Manager', departmentId: 3, hireDate: new Date('2020-04-20'), salary: 105000, status: 'active', managerId: 1 },
-      { id: 9, firstName: 'Tom', lastName: 'Moore', email: 'tom.moore@company.com', position: 'Marketing Specialist', departmentId: 3, hireDate: new Date('2021-11-05'), salary: 60000, status: 'active', managerId: 8 },
-      { id: 10, firstName: 'Anna', lastName: 'Taylor', email: 'anna.taylor@company.com', position: 'HR Manager', departmentId: 4, hireDate: new Date('2019-08-12'), salary: 100000, status: 'active', managerId: 1 },
+      { id: 9, firstName: 'Tom', lastName: 'Jerry', email: 'tom.jerry@company.com', position: 'Marketing Specialist', departmentId: 3, hireDate: new Date('2021-11-05'), salary: 60000, status: 'active', managerId: 8 },
+      { id: 10, firstName: 'Swift', lastName: 'Taylor', email: 'swift.taylor@company.com', position: 'HR Manager', departmentId: 4, hireDate: new Date('2019-08-12'), salary: 100000, status: 'active', managerId: 1 },
       { id: 11, firstName: 'Chris', lastName: 'Anderson', email: 'chris.anderson@company.com', position: 'Frontend Developer', departmentId: 1, hireDate: new Date('2021-06-30'), salary: 80000, status: 'on-leave', managerId: 2 },
       { id: 12, firstName: 'Jessica', lastName: 'Thomas', email: 'jessica.thomas@company.com', position: 'Finance Manager', departmentId: 5, hireDate: new Date('2020-02-18'), salary: 115000, status: 'active', managerId: 1 }
     ];

@@ -76,12 +76,6 @@
 
   <!-- ══ Main Content ══ -->
   <main class="shell-main">
-    <!-- Global HTTP loading bar -->
-    <mat-progress-bar
-      *ngIf="loadingService.loading$ | async"
-      mode="indeterminate"
-      class="global-loading-bar">
-    </mat-progress-bar>
     <router-outlet></router-outlet>
   </main>
 

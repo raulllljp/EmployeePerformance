@@ -2,16 +2,6 @@
    App Shell — Sidebar Layout
    =================================================== */
 
-/* ── Global HTTP loading bar ── */
-.global-loading-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  height: 3px;
-}
-
 /* ── Shell wrapper ── */
 .app-shell {
   display: flex;

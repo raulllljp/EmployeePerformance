@@ -5,12 +5,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { PerformanceService } from '../../services/performance.service';
-import { LoadingService } from '../../services/loading.service';
 import { User } from '../../models';
 
 interface NavItem {
@@ -32,8 +30,7 @@ interface NavItem {
     MatIconModule,
     MatTooltipModule,
     MatButtonModule,
-    MatBadgeModule,
-    MatProgressBarModule
+    MatBadgeModule
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.css'
@@ -62,7 +59,6 @@ export class Shell implements OnInit, OnDestroy {
   constructor(
     public authService: AuthService,
     private performanceService: PerformanceService,
-    public loadingService: LoadingService,
     private router: Router
   ) {}
 

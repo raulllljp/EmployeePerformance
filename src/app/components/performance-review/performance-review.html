@@ -1,260 +1,477 @@
 <div class="review-container">
-  <!-- Header -->
-  <div class="page-header">
-    <button mat-icon-button (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <div>
-      <h1>Submit Performance Review</h1>
-      <p>Complete the performance evaluation form</p>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       EMPLOYEE VIEW — "My Reviews" (what others wrote about me)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isEmployee">
+
+    <!-- Header -->
+    <div class="page-header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>My Reviews</h1>
+        <p>Performance evaluations written about you by your manager</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Stepper Form -->
-  <mat-card class="stepper-card">
-    <mat-stepper linear #stepper>
-      <!-- Step 1: Basic Information -->
-      <mat-step [stepControl]="reviewFormGroup">
-        <ng-template matStepLabel>Basic Information</ng-template>
-        <form [formGroup]="reviewFormGroup" class="step-form">
-          <h2>Employee & Review Details</h2>
+    <!-- Loading state -->
+    <div class="loading-state" *ngIf="myReviewsLoading">
+      <mat-icon class="spin">hourglass_empty</mat-icon>
+      <p>Loading your reviews…</p>
+    </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Select Employee</mat-label>
-            <mat-select formControlName="employeeId" (selectionChange)="onEmployeeChange()">
-              <mat-option *ngFor="let emp of employees" [value]="emp.id">
-                {{ emp.firstName }} {{ emp.lastName }} - {{ emp.position }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matPrefix>person</mat-icon>
-            <mat-error *ngIf="reviewFormGroup.get('employeeId')?.hasError('required')">
-              Please select an employee
-            </mat-error>
-          </mat-form-field>
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!myReviewsLoading && myReviews.length === 0">
+      <mat-icon>rate_review</mat-icon>
+      <h3>No reviews yet</h3>
+      <p>You don't have any performance reviews on record. They will appear here once your manager submits one.</p>
+    </div>
 
-          <div *ngIf="selectedEmployee" class="employee-card">
-            <div class="avatar">
-              {{ selectedEmployee.firstName.charAt(0) }}{{ selectedEmployee.lastName.charAt(0) }}
-            </div>
-            <div>
-              <h3>{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</h3>
-              <p>{{ selectedEmployee.position }} • {{ selectedEmployee.email }}</p>
-            </div>
+    <!-- Review list + detail -->
+    <div class="reviews-layout" *ngIf="!myReviewsLoading && myReviews.length > 0">
+
+      <!-- Left: list of reviews -->
+      <div class="review-list-panel">
+        <div class="panel-label">{{ myReviews.length }} Review{{ myReviews.length !== 1 ? 's' : '' }}</div>
+
+        <div class="review-list-item"
+             *ngFor="let r of myReviews"
+             (click)="selectReview(r)"
+             [class.active]="selectedReview?.id === r.id">
+          <div class="rli-left">
+            <div class="rli-avatar">{{ getInitials(r.reviewerName || 'R') }}</div>
           </div>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Review Period</mat-label>
-            <input matInput formControlName="period" placeholder="e.g., Q1 2026, Annual 2025">
-            <mat-icon matPrefix>date_range</mat-icon>
-            <mat-error *ngIf="reviewFormGroup.get('period')?.hasError('required')">
-              Please enter review period
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Review Date</mat-label>
-            <input matInput type="date" formControlName="reviewDate">
-            <mat-icon matPrefix>event</mat-icon>
-          </mat-form-field>
-
-          <div class="button-row">
-            <button mat-button matStepperPrevious disabled>Back</button>
-            <button mat-raised-button color="primary" matStepperNext>Next</button>
+          <div class="rli-body">
+            <span class="rli-reviewer">{{ r.reviewerName }}</span>
+            <span class="rli-period">{{ r.period }}</span>
+            <span class="rli-date">{{ r.reviewDate | date:'mediumDate' }}</span>
           </div>
-        </form>
-      </mat-step>
+          <div class="rli-right">
+            <span class="rli-rating">{{ r.overallRating | number:'1.1-1' }}</span>
+            <span class="rli-badge" [ngClass]="getRatingBadgeClass(r.overallRating)">
+              {{ getRatingLevel(r.overallRating) }}
+            </span>
+          </div>
+          <mat-icon class="rli-arrow">chevron_right</mat-icon>
+        </div>
+      </div>
 
-      <!-- Step 2: Performance Scores -->
-      <mat-step [stepControl]="scoresFormGroup">
-        <ng-template matStepLabel>Performance Scores</ng-template>
-        <form [formGroup]="scoresFormGroup" class="step-form">
-          <h2>Rate Performance Areas</h2>
-          <p class="subtitle">Rate each area on a scale of 1 (Poor) to 5 (Excellent)</p>
+      <!-- Right: selected review detail -->
+      <div class="review-detail-panel" *ngIf="selectedReview">
 
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>trending_up</mat-icon>
-              Productivity
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="productivityScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('productivityScore')?.value | number: '1.1-1' }}</span>
+        <!-- Detail header card -->
+        <mat-card class="detail-header-card">
+          <div class="detail-header">
+            <div class="detail-header-left">
+              <div class="detail-avatar">{{ getInitials(selectedReview.reviewerName || 'R') }}</div>
+              <div class="detail-meta">
+                <h2>{{ selectedReview.period }}</h2>
+                <p class="meta-row">
+                  <mat-icon>person</mat-icon>
+                  Reviewed by <strong>{{ selectedReview.reviewerName }}</strong>
+                  <span *ngIf="selectedReview.reviewerPosition"> &bull; {{ selectedReview.reviewerPosition }}</span>
+                </p>
+                <p class="meta-row">
+                  <mat-icon>event</mat-icon>
+                  {{ selectedReview.reviewDate | date:'longDate' }}
+                </p>
+              </div>
             </div>
-          </div>
-
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>verified</mat-icon>
-              Quality
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="qualityScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('qualityScore')?.value | number: '1.1-1' }}</span>
+            <div class="detail-overall">
+              <div class="overall-circle" [style.border-color]="getScoreColor(selectedReview.overallRating)">
+                <span class="overall-num">{{ selectedReview.overallRating | number:'1.1-1' }}</span>
+                <span class="overall-max">/5</span>
+              </div>
+              <span class="overall-label" [ngClass]="getRatingBadgeClass(selectedReview.overallRating)">
+                {{ getRatingLevel(selectedReview.overallRating) }}
+              </span>
             </div>
           </div>
+        </mat-card>
 
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>chat</mat-icon>
-              Communication
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="communicationScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('communicationScore')?.value | number: '1.1-1' }}</span>
+        <!-- Score breakdown -->
+        <mat-card class="detail-section-card scores-card">
+          <div class="section-title">
+            <mat-icon>bar_chart</mat-icon>
+            Score Breakdown
+          </div>
+          <div class="score-bars">
+            <div class="score-bar-row" *ngFor="let s of getScoreRows(selectedReview)">
+              <mat-icon class="bar-icon">{{ s.icon }}</mat-icon>
+              <span class="bar-label">{{ s.label }}</span>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="getScorePercent(s.value)"
+                color="primary"
+                class="bar-track">
+              </mat-progress-bar>
+              <span class="bar-value" [style.color]="getScoreColor(s.value)">
+                {{ s.value | number:'1.1-1' }}
+              </span>
+              <span class="bar-text">{{ getScoreLabel(s.value) }}</span>
             </div>
           </div>
+        </mat-card>
 
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>group</mat-icon>
-              Teamwork
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="teamworkScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('teamworkScore')?.value | number: '1.1-1' }}</span>
+        <!-- Manager's comments -->
+        <mat-card class="detail-section-card">
+          <div class="section-title">
+            <mat-icon>comment</mat-icon>
+            Manager's Comments
+          </div>
+          <p class="comments-text">{{ selectedReview.comments }}</p>
+        </mat-card>
+
+        <!-- Tabs: achievements / goals / improvements -->
+        <mat-card class="detail-section-card feedback-tabs-card">
+          <mat-tab-group animationDuration="200ms" color="primary">
+
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">emoji_events</mat-icon>
+                Achievements
+                <span class="tab-count">{{ selectedReview.achievements.length }}</span>
+              </ng-template>
+              <div class="tab-content">
+                <p class="tab-empty" *ngIf="selectedReview.achievements.length === 0">
+                  No achievements recorded for this review.
+                </p>
+                <div class="feedback-item achievement"
+                     *ngFor="let a of selectedReview.achievements; let i = index">
+                  <div class="fi-num">{{ i + 1 }}</div>
+                  <p class="fi-text">{{ a }}</p>
+                </div>
+              </div>
+            </mat-tab>
+
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">flag</mat-icon>
+                Goals Set
+                <span class="tab-count">{{ selectedReview.goals.length }}</span>
+              </ng-template>
+              <div class="tab-content">
+                <p class="tab-empty" *ngIf="selectedReview.goals.length === 0">
+                  No goals recorded for this review.
+                </p>
+                <div class="feedback-item goal"
+                     *ngFor="let g of selectedReview.goals; let i = index">
+                  <div class="fi-num">{{ i + 1 }}</div>
+                  <p class="fi-text">{{ g }}</p>
+                </div>
+              </div>
+            </mat-tab>
+
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">trending_up</mat-icon>
+                Areas to Improve
+                <span class="tab-count">{{ selectedReview.areasOfImprovement.length }}</span>
+              </ng-template>
+              <div class="tab-content">
+                <p class="tab-empty" *ngIf="selectedReview.areasOfImprovement.length === 0">
+                  No areas of improvement recorded.
+                </p>
+                <div class="feedback-item improvement"
+                     *ngFor="let a of selectedReview.areasOfImprovement; let i = index">
+                  <div class="fi-num">{{ i + 1 }}</div>
+                  <p class="fi-text">{{ a }}</p>
+                </div>
+              </div>
+            </mat-tab>
+
+          </mat-tab-group>
+        </mat-card>
+
+      </div><!-- /review-detail-panel -->
+    </div><!-- /reviews-layout -->
+
+  </ng-container>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       MANAGER VIEW — Submit a performance review
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isManager">
+
+    <!-- Header -->
+    <div class="page-header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>Submit Performance Review</h1>
+        <p>Complete the performance evaluation form</p>
+      </div>
+    </div>
+
+    <!-- Pending Reviews Panel -->
+    <mat-card class="pending-panel" *ngIf="pendingReviews.length > 0">
+      <div class="pending-header">
+        <div class="pending-title">
+          <mat-icon>pending_actions</mat-icon>
+          <span>Pending Reviews</span>
+          <span class="pending-count">{{ pendingReviews.length }}</span>
+        </div>
+        <p class="pending-subtitle">Click a review to start evaluating that employee</p>
+      </div>
+      <div class="pending-list">
+        <div class="pending-item"
+             *ngFor="let review of pendingReviews"
+             (click)="selectPendingReview(review)"
+             [class.selected]="reviewFormGroup.get('employeeId')?.value === review.employeeId"
+             matTooltip="Click to start this review">
+          <div class="pending-avatar">{{ getInitials(review.employeeName || '') }}</div>
+          <div class="pending-info">
+            <span class="pending-name">{{ review.employeeName }}</span>
+            <span class="pending-pos">{{ review.employeePosition }}</span>
+          </div>
+          <div class="pending-meta">
+            <span class="pending-type">{{ review.reviewType | titlecase }}</span>
+            <span class="pending-due"
+                  [class.overdue]="getDaysUntilDue(review.dueDate) < 0"
+                  [class.urgent]="getDaysUntilDue(review.dueDate) >= 0 && getDaysUntilDue(review.dueDate) <= 3">
+              <mat-icon>{{ getDaysUntilDue(review.dueDate) < 0 ? 'warning' : 'event' }}</mat-icon>
+              {{ getDaysUntilDue(review.dueDate) < 0
+                  ? 'Overdue by ' + (-getDaysUntilDue(review.dueDate)) + 'd'
+                  : 'Due in ' + getDaysUntilDue(review.dueDate) + 'd' }}
+            </span>
+          </div>
+          <span class="pending-status" [ngClass]="review.status">{{ review.status }}</span>
+          <mat-icon class="pending-arrow">chevron_right</mat-icon>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Stepper Form -->
+    <mat-card class="stepper-card">
+      <mat-stepper linear #stepper>
+
+        <!-- Step 1: Basic Information -->
+        <mat-step [stepControl]="reviewFormGroup">
+          <ng-template matStepLabel>Basic Information</ng-template>
+          <form [formGroup]="reviewFormGroup" class="step-form">
+            <h2>Employee & Review Details</h2>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Select Employee</mat-label>
+              <mat-select formControlName="employeeId" (selectionChange)="onEmployeeChange()">
+                <mat-option *ngFor="let emp of employees" [value]="emp.id">
+                  {{ emp.firstName }} {{ emp.lastName }} — {{ emp.position }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-error *ngIf="reviewFormGroup.get('employeeId')?.hasError('required')">
+                Please select an employee
+              </mat-error>
+            </mat-form-field>
+
+            <div *ngIf="selectedEmployee" class="employee-card">
+              <div class="avatar">
+                {{ selectedEmployee.firstName.charAt(0) }}{{ selectedEmployee.lastName.charAt(0) }}
+              </div>
+              <div>
+                <h3>{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</h3>
+                <p>{{ selectedEmployee.position }} &bull; {{ selectedEmployee.email }}</p>
+              </div>
             </div>
-          </div>
 
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>lightbulb</mat-icon>
-              Innovation
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="innovationScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('innovationScore')?.value | number: '1.1-1' }}</span>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Review Period</mat-label>
+              <input matInput formControlName="period" placeholder="e.g., Q1 2026, Annual 2025">
+              <mat-icon matPrefix>date_range</mat-icon>
+              <mat-error *ngIf="reviewFormGroup.get('period')?.hasError('required')">
+                Please enter review period
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Review Date</mat-label>
+              <input matInput type="date" formControlName="reviewDate">
+              <mat-icon matPrefix>event</mat-icon>
+            </mat-form-field>
+
+            <div class="button-row">
+              <button mat-button disabled>Back</button>
+              <button mat-raised-button color="primary" matStepperNext>Next</button>
             </div>
-          </div>
+          </form>
+        </mat-step>
 
-          <div class="score-section">
-            <label class="score-label">
-              <mat-icon>schedule</mat-icon>
-              Attendance
-            </label>
-            <div class="slider-container">
-              <mat-slider min="1" max="5" step="0.5" discrete>
-                <input matSliderThumb formControlName="attendanceScore">
-              </mat-slider>
-              <span class="score-value">{{ scoresFormGroup.get('attendanceScore')?.value | number: '1.1-1' }}</span>
+        <!-- Step 2: Performance Scores -->
+        <mat-step [stepControl]="scoresFormGroup">
+          <ng-template matStepLabel>Performance Scores</ng-template>
+          <form [formGroup]="scoresFormGroup" class="step-form">
+            <h2>Rate Performance Areas</h2>
+            <p class="subtitle">Rate each area on a scale of 1 (Poor) to 5 (Excellent)</p>
+
+            <div class="score-section">
+              <label class="score-label"><mat-icon>trending_up</mat-icon> Productivity</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="productivityScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('productivityScore')?.value | number:'1.1-1' }}</span>
+              </div>
             </div>
-          </div>
-
-          <div class="overall-rating">
-            <h3>Overall Rating</h3>
-            <div class="rating-value">{{ calculateOverallRating() | number: '1.2-2' }}</div>
-          </div>
-
-          <div class="button-row">
-            <button mat-button matStepperPrevious>Back</button>
-            <button mat-raised-button color="primary" matStepperNext>Next</button>
-          </div>
-        </form>
-      </mat-step>
-
-      <!-- Step 3: Feedback & Goals -->
-      <mat-step [stepControl]="feedbackFormGroup">
-        <ng-template matStepLabel>Feedback & Goals</ng-template>
-        <form [formGroup]="feedbackFormGroup" class="step-form">
-          <h2>Detailed Feedback</h2>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Overall Comments</mat-label>
-            <textarea matInput formControlName="comments" rows="5" 
-              placeholder="Provide detailed feedback on employee's performance"></textarea>
-            <mat-icon matPrefix>comment</mat-icon>
-            <mat-error *ngIf="feedbackFormGroup.get('comments')?.hasError('required')">
-              Comments are required
-            </mat-error>
-          </mat-form-field>
-
-          <div class="array-section">
-            <div class="section-header">
-              <h3><mat-icon>emoji_events</mat-icon> Achievements</h3>
-              <button mat-mini-fab color="primary" type="button" (click)="addAchievement()">
-                <mat-icon>add</mat-icon>
-              </button>
+            <div class="score-section">
+              <label class="score-label"><mat-icon>verified</mat-icon> Quality</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="qualityScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('qualityScore')?.value | number:'1.1-1' }}</span>
+              </div>
             </div>
-            <div formArrayName="achievements">
-              <div *ngFor="let achievement of achievements.controls; let i = index" class="array-item">
-                <div [formGroupName]="i" class="array-input">
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Achievement {{ i + 1 }}</mat-label>
-                    <input matInput formControlName="text" placeholder="Enter achievement">
-                  </mat-form-field>
-                  <button mat-icon-button color="warn" type="button" (click)="removeAchievement(i)" 
-                    *ngIf="achievements.length > 1">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+            <div class="score-section">
+              <label class="score-label"><mat-icon>chat</mat-icon> Communication</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="communicationScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('communicationScore')?.value | number:'1.1-1' }}</span>
+              </div>
+            </div>
+            <div class="score-section">
+              <label class="score-label"><mat-icon>group</mat-icon> Teamwork</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="teamworkScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('teamworkScore')?.value | number:'1.1-1' }}</span>
+              </div>
+            </div>
+            <div class="score-section">
+              <label class="score-label"><mat-icon>lightbulb</mat-icon> Innovation</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="innovationScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('innovationScore')?.value | number:'1.1-1' }}</span>
+              </div>
+            </div>
+            <div class="score-section">
+              <label class="score-label"><mat-icon>schedule</mat-icon> Attendance</label>
+              <div class="slider-container">
+                <mat-slider min="1" max="5" step="0.5" discrete>
+                  <input matSliderThumb formControlName="attendanceScore">
+                </mat-slider>
+                <span class="score-value">{{ scoresFormGroup.get('attendanceScore')?.value | number:'1.1-1' }}</span>
+              </div>
+            </div>
+
+            <div class="overall-rating">
+              <h3>Overall Rating</h3>
+              <div class="rating-value">{{ calculateOverallRating() | number:'1.2-2' }}</div>
+            </div>
+
+            <div class="button-row">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" matStepperNext>Next</button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Feedback & Goals -->
+        <mat-step [stepControl]="feedbackFormGroup">
+          <ng-template matStepLabel>Feedback & Goals</ng-template>
+          <form [formGroup]="feedbackFormGroup" class="step-form">
+            <h2>Detailed Feedback</h2>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Overall Comments</mat-label>
+              <textarea matInput formControlName="comments" rows="5"
+                placeholder="Provide detailed feedback on the employee's performance"></textarea>
+              <mat-icon matPrefix>comment</mat-icon>
+              <mat-error *ngIf="feedbackFormGroup.get('comments')?.hasError('required')">
+                Comments are required
+              </mat-error>
+            </mat-form-field>
+
+            <div class="array-section">
+              <div class="section-header">
+                <h3><mat-icon>emoji_events</mat-icon> Achievements</h3>
+                <button mat-mini-fab color="primary" type="button" (click)="addAchievement()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <div formArrayName="achievements">
+                <div *ngFor="let a of achievements.controls; let i = index" class="array-item">
+                  <div [formGroupName]="i" class="array-input">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Achievement {{ i + 1 }}</mat-label>
+                      <input matInput formControlName="text" placeholder="Enter achievement">
+                    </mat-form-field>
+                    <button mat-icon-button color="warn" type="button" (click)="removeAchievement(i)"
+                      *ngIf="achievements.length > 1">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="array-section">
-            <div class="section-header">
-              <h3><mat-icon>flag</mat-icon> Goals</h3>
-              <button mat-mini-fab color="primary" type="button" (click)="addGoal()">
-                <mat-icon>add</mat-icon>
-              </button>
-            </div>
-            <div formArrayName="goals">
-              <div *ngFor="let goal of goals.controls; let i = index" class="array-item">
-                <div [formGroupName]="i" class="array-input">
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Goal {{ i + 1 }}</mat-label>
-                    <input matInput formControlName="text" placeholder="Enter goal">
-                  </mat-form-field>
-                  <button mat-icon-button color="warn" type="button" (click)="removeGoal(i)" 
-                    *ngIf="goals.length > 1">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+            <div class="array-section">
+              <div class="section-header">
+                <h3><mat-icon>flag</mat-icon> Goals</h3>
+                <button mat-mini-fab color="primary" type="button" (click)="addGoal()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <div formArrayName="goals">
+                <div *ngFor="let goal of goals.controls; let i = index" class="array-item">
+                  <div [formGroupName]="i" class="array-input">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Goal {{ i + 1 }}</mat-label>
+                      <input matInput formControlName="text" placeholder="Enter goal">
+                    </mat-form-field>
+                    <button mat-icon-button color="warn" type="button" (click)="removeGoal(i)"
+                      *ngIf="goals.length > 1">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="array-section">
-            <div class="section-header">
-              <h3><mat-icon>trending_up</mat-icon> Areas of Improvement</h3>
-              <button mat-mini-fab color="primary" type="button" (click)="addImprovement()">
-                <mat-icon>add</mat-icon>
-              </button>
-            </div>
-            <div formArrayName="areasOfImprovement">
-              <div *ngFor="let area of areasOfImprovement.controls; let i = index" class="array-item">
-                <div [formGroupName]="i" class="array-input">
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Area {{ i + 1 }}</mat-label>
-                    <input matInput formControlName="text" placeholder="Enter area of improvement">
-                  </mat-form-field>
-                  <button mat-icon-button color="warn" type="button" (click)="removeImprovement(i)" 
-                    *ngIf="areasOfImprovement.length > 1">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+            <div class="array-section">
+              <div class="section-header">
+                <h3><mat-icon>trending_up</mat-icon> Areas of Improvement</h3>
+                <button mat-mini-fab color="primary" type="button" (click)="addImprovement()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <div formArrayName="areasOfImprovement">
+                <div *ngFor="let area of areasOfImprovement.controls; let i = index" class="array-item">
+                  <div [formGroupName]="i" class="array-input">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Area {{ i + 1 }}</mat-label>
+                      <input matInput formControlName="text" placeholder="Enter area of improvement">
+                    </mat-form-field>
+                    <button mat-icon-button color="warn" type="button" (click)="removeImprovement(i)"
+                      *ngIf="areasOfImprovement.length > 1">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="button-row">
-            <button mat-button matStepperPrevious>Back</button>
-            <button mat-raised-button color="accent" (click)="onSubmit()" [disabled]="isSubmitting">
-              <mat-icon>send</mat-icon>
-              {{ isSubmitting ? 'Submitting...' : 'Submit Review' }}
-            </button>
-          </div>
-        </form>
-      </mat-step>
-    </mat-stepper>
-  </mat-card>
+            <div class="button-row">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="accent" (click)="onSubmit()" [disabled]="isSubmitting">
+                <mat-icon>send</mat-icon>
+                {{ isSubmitting ? 'Submitting…' : 'Submit Review' }}
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+      </mat-stepper>
+    </mat-card>
+
+  </ng-container>
+
 </div>

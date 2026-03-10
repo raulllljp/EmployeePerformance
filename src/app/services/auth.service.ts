@@ -12,9 +12,8 @@ export class AuthService {
 
   // Mock users for demonstration
   private mockUsers: User[] = [
-    { id: 1, username: 'admin', email: 'admin@company.com', role: 'admin', employeeId: 1 },
-    { id: 2, username: 'manager', email: 'manager@company.com', role: 'manager', employeeId: 2 },
-    { id: 3, username: 'employee', email: 'employee@company.com', role: 'employee', employeeId: 3 }
+    { id: 1, username: 'manager', email: 'manager@company.com', role: 'manager', employeeId: 2 },
+    { id: 2, username: 'employee', email: 'employee@company.com', role: 'employee', employeeId: 3 }
   ];
 
   constructor() {
@@ -62,10 +61,10 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.hasRole(['admin']);
+    return this.isManager(); // kept for backwards compatibility; manager is the highest role
   }
 
   isManager(): boolean {
-    return this.hasRole(['admin', 'manager']);
+    return this.hasRole(['manager']);
   }
 }

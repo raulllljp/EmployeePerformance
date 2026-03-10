@@ -1,207 +1,519 @@
 <div class="dashboard-container">
-  <!-- Header -->
-  <div class="dashboard-header">
-    <div class="header-left">
-      <h1>Performance Dashboard</h1>
-      <p *ngIf="currentUser">Welcome back, {{ currentUser.username }}!</p>
+
+  <!-- ══════════════════════════════════════════════════════
+       HERO HEADER  (shared for all roles)
+  ══════════════════════════════════════════════════════ -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <div class="header-badge">
+        <mat-icon>{{ isManager ? 'manage_accounts' : 'person' }}</mat-icon>
+        <span>{{ isManager ? 'Manager' : 'Employee' }} Dashboard</span>
+      </div>
+      <h1>
+        {{ isManager ? 'Team Overview' : 'My Performance' }}
+      </h1>
+      <p *ngIf="currentUser">
+        Welcome back, <strong>{{ currentUser.username }}</strong> 👋
+        <span class="role-chip">{{ currentUser.role | titlecase }}</span>
+      </p>
     </div>
-    <div class="header-right">
-      <button mat-raised-button color="primary" (click)="navigateToEmployees()">
-        <mat-icon>people</mat-icon>
-        View All Employees
-      </button>
-      <button mat-stroked-button (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        Logout
+    <div class="dash-header-right">
+      <button mat-raised-button class="header-btn-primary"
+              (click)="isEmployee ? navigateToMyDetail() : navigateToEmployees()">
+        <mat-icon>{{ isEmployee ? 'badge' : 'people' }}</mat-icon>
+        {{ isEmployee ? 'My Profile' : 'View Employees' }}
       </button>
     </div>
   </div>
 
-  <!-- Statistics Cards -->
-  <div class="stats-grid">
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon employees">
-          <mat-icon>people</mat-icon>
-        </div>
-        <div class="stat-details">
-          <h2>{{ totalEmployees }}</h2>
-          <p>Total Employees</p>
-          <span class="stat-subtitle">{{ activeEmployees }} Active</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- ══════════════════════════════════════════════════════
+       ███  M A N A G E R  D A S H B O A R D
+  ══════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isManager">
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon reviews">
-          <mat-icon>assignment</mat-icon>
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card clickable" (click)="navigateToEmployees()">
+        <div class="stat-icon-wrap employees"><mat-icon>groups</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ totalEmployees }}</div>
+          <div class="stat-label">Total Employees</div>
+          <div class="stat-sub">{{ activeEmployees }} active</div>
         </div>
-        <div class="stat-details">
-          <h2>{{ pendingReviews }}</h2>
-          <p>Pending Reviews</p>
-          <span class="stat-subtitle">Require attention</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        <div class="stat-trend up"><mat-icon>check_circle</mat-icon>Active</div>
+      </div>
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon rating">
-          <mat-icon>star</mat-icon>
+      <div class="stat-card clickable" (click)="navigateToReviews()">
+        <div class="stat-icon-wrap reviews"><mat-icon>pending_actions</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ pendingReviews }}</div>
+          <div class="stat-label">Pending Reviews</div>
+          <div class="stat-sub">Require attention</div>
         </div>
-        <div class="stat-details">
-          <h2>{{ averageRating | number: '1.1-1' }}</h2>
-          <p>Average Rating</p>
-          <span class="stat-subtitle">Company-wide</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        <div class="stat-trend warn"><mat-icon>schedule</mat-icon>Due</div>
+      </div>
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon performance">
-          <mat-icon>trending_up</mat-icon>
+      <div class="stat-card clickable" (click)="navigateToAnalytics()">
+        <div class="stat-icon-wrap rating"><mat-icon>star</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ averageRating | number:'1.1-1' }}</div>
+          <div class="stat-label">Avg. Rating</div>
+          <div class="stat-sub">Company-wide</div>
         </div>
-        <div class="stat-details">
-          <h2>{{ performanceStats?.totalReviews || 0 }}</h2>
-          <p>Total Reviews</p>
-          <span class="stat-subtitle">This period</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+        <div class="stat-trend up"><mat-icon>trending_up</mat-icon>+0.2</div>
+      </div>
 
-  <!-- Performance Distribution -->
-  <div class="content-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>bar_chart</mat-icon>
-          Performance Distribution
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content *ngIf="performanceStats">
-        <div class="performance-breakdown">
-          <div class="performance-item">
-            <div class="item-header">
-              <span class="label">Exceptional (4.5+)</span>
-              <span class="value">{{ performanceStats.exceptional }}</span>
+      <div class="stat-card clickable" (click)="navigateToAnalytics()">
+        <div class="stat-icon-wrap total"><mat-icon>assignment_turned_in</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ performanceStats?.totalReviews || 0 }}</div>
+          <div class="stat-label">Total Reviews</div>
+          <div class="stat-sub">This period</div>
+        </div>
+        <div class="stat-trend up"><mat-icon>check_circle</mat-icon>Done</div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+
+      <!-- Performance Breakdown -->
+      <mat-card class="content-card breakdown-card">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>insights</mat-icon> Performance Breakdown</div>
+        </div>
+        <div class="card-body" *ngIf="performanceStats">
+          <div class="breakdown-list">
+            <div class="breakdown-row">
+              <div class="breakdown-meta">
+                <span class="dot exceptional"></span>
+                <span class="breakdown-label">Exceptional</span>
+                <span class="breakdown-range">≥ 4.5</span>
+              </div>
+              <div class="breakdown-bar-wrap">
+                <div class="breakdown-bar" [style.width.%]="(performanceStats.exceptional / performanceStats.totalReviews) * 100" style="background:var(--grad-success)"></div>
+              </div>
+              <span class="breakdown-count">{{ performanceStats.exceptional }}</span>
             </div>
-            <mat-progress-bar mode="determinate" 
-              [value]="(performanceStats.exceptional / performanceStats.totalReviews) * 100"
-              color="primary">
-            </mat-progress-bar>
-          </div>
-
-          <div class="performance-item">
-            <div class="item-header">
-              <span class="label">Exceeds Expectations (4.0-4.5)</span>
-              <span class="value">{{ performanceStats.exceedsExpectations }}</span>
+            <div class="breakdown-row">
+              <div class="breakdown-meta">
+                <span class="dot exceeds"></span>
+                <span class="breakdown-label">Exceeds</span>
+                <span class="breakdown-range">4.0–4.5</span>
+              </div>
+              <div class="breakdown-bar-wrap">
+                <div class="breakdown-bar" [style.width.%]="(performanceStats.exceedsExpectations / performanceStats.totalReviews) * 100" style="background:var(--grad-primary)"></div>
+              </div>
+              <span class="breakdown-count">{{ performanceStats.exceedsExpectations }}</span>
             </div>
-            <mat-progress-bar mode="determinate"
-              [value]="(performanceStats.exceedsExpectations / performanceStats.totalReviews) * 100"
-              color="accent">
-            </mat-progress-bar>
-          </div>
-
-          <div class="performance-item">
-            <div class="item-header">
-              <span class="label">Meets Expectations (3.0-4.0)</span>
-              <span class="value">{{ performanceStats.meetsExpectations }}</span>
+            <div class="breakdown-row">
+              <div class="breakdown-meta">
+                <span class="dot meets"></span>
+                <span class="breakdown-label">Meets</span>
+                <span class="breakdown-range">3.0–4.0</span>
+              </div>
+              <div class="breakdown-bar-wrap">
+                <div class="breakdown-bar" [style.width.%]="(performanceStats.meetsExpectations / performanceStats.totalReviews) * 100" style="background:var(--grad-accent)"></div>
+              </div>
+              <span class="breakdown-count">{{ performanceStats.meetsExpectations }}</span>
             </div>
-            <mat-progress-bar mode="determinate"
-              [value]="(performanceStats.meetsExpectations / performanceStats.totalReviews) * 100">
-            </mat-progress-bar>
-          </div>
-
-          <div class="performance-item">
-            <div class="item-header">
-              <span class="label">Needs Improvement (< 3.0)</span>
-              <span class="value">{{ performanceStats.needsImprovement }}</span>
+            <div class="breakdown-row">
+              <div class="breakdown-meta">
+                <span class="dot needs"></span>
+                <span class="breakdown-label">Needs Work</span>
+                <span class="breakdown-range">< 3.0</span>
+              </div>
+              <div class="breakdown-bar-wrap">
+                <div class="breakdown-bar" [style.width.%]="(performanceStats.needsImprovement / performanceStats.totalReviews) * 100" style="background:var(--grad-warn)"></div>
+              </div>
+              <span class="breakdown-count">{{ performanceStats.needsImprovement }}</span>
             </div>
-            <mat-progress-bar mode="determinate"
-              [value]="(performanceStats.needsImprovement / performanceStats.totalReviews) * 100"
-              color="warn">
-            </mat-progress-bar>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Recent Reviews -->
-  <div class="content-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>schedule</mat-icon>
-          Recent Reviews
-        </mat-card-title>
-        <button mat-button color="primary" (click)="navigateToReviews()">View All</button>
-      </mat-card-header>
-      <mat-card-content>
-        <div *ngIf="recentReviews.length === 0" class="no-data">
-          <mat-icon>info</mat-icon>
-          <p>No recent reviews available</p>
+        <div class="card-body" *ngIf="!performanceStats">
+          <div class="empty-state"><mat-icon>hourglass_empty</mat-icon><p>Loading stats…</p></div>
         </div>
-        <table mat-table [dataSource]="recentReviews" *ngIf="recentReviews.length > 0" class="reviews-table">
-          <ng-container matColumnDef="employee">
-            <th mat-header-cell *matHeaderCellDef>Employee</th>
-            <td mat-cell *matCellDef="let review">Employee #{{ review.employeeId }}</td>
-          </ng-container>
+      </mat-card>
 
-          <ng-container matColumnDef="reviewType">
-            <th mat-header-cell *matHeaderCellDef>Type</th>
-            <td mat-cell *matCellDef="let review">
-              <mat-chip>{{ review.reviewType }}</mat-chip>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let review">
-              <mat-chip [color]="getStatusColor(review.status)">{{ review.status }}</mat-chip>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="dueDate">
-            <th mat-header-cell *matHeaderCellDef>Due Date</th>
-            <td mat-cell *matCellDef="let review">{{ review.dueDate | date: 'MMM d, y' }}</td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Quick Actions -->
-  <div class="content-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>flash_on</mat-icon>
-          Quick Actions
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="quick-actions">
-          <button mat-raised-button color="primary" (click)="navigateToEmployees()">
-            <mat-icon>person_add</mat-icon>
-            View Employees
+      <!-- Recent Reviews -->
+      <mat-card class="content-card reviews-card">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>schedule</mat-icon> Recent Reviews</div>
+          <button mat-button color="primary" (click)="navigateToReviews()" class="view-all-btn">
+            View all <mat-icon>chevron_right</mat-icon>
           </button>
-          <button mat-raised-button color="accent" (click)="navigateToReviews()" *ngIf="currentUser?.role === 'manager' || currentUser?.role === 'admin'">
+        </div>
+        <div class="card-body">
+          <div *ngIf="recentReviews.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon><p>No recent reviews</p>
+          </div>
+          <div *ngFor="let review of recentReviews" class="review-row clickable"
+               (click)="navigateToReviewDetail(review)"
+               matTooltip="View employee profile">
+            <div class="review-avatar">{{ getEmployeeInitials(review.employeeId) }}</div>
+            <div class="review-meta">
+              <span class="review-emp">{{ getEmployeeName(review.employeeId) }}</span>
+              <span class="review-type">{{ review.reviewType | titlecase }}</span>
+            </div>
+            <div class="review-right">
+              <span class="review-due">{{ review.dueDate | date:'MMM d' }}</span>
+              <span class="status-dot" [ngClass]="review.status">{{ review.status }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Quick Actions -->
+      <mat-card class="content-card actions-card">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>bolt</mat-icon> Quick Actions</div>
+        </div>
+        <div class="card-body actions-body">
+          <button class="action-btn employees-btn" (click)="navigateToEmployees()">
+            <div class="action-icon"><mat-icon>people</mat-icon></div>
+            <div class="action-text">
+              <span class="action-name">Employees</span>
+              <span class="action-desc">View directory</span>
+            </div>
+            <mat-icon class="action-arrow">chevron_right</mat-icon>
+          </button>
+          <button class="action-btn add-btn" (click)="navigateToAddEmployee()">
+            <div class="action-icon"><mat-icon>person_add</mat-icon></div>
+            <div class="action-text">
+              <span class="action-name">Add Employee</span>
+              <span class="action-desc">Register new member</span>
+            </div>
+            <mat-icon class="action-arrow">chevron_right</mat-icon>
+          </button>
+          <button class="action-btn review-btn" (click)="navigateToReviews()">
+            <div class="action-icon"><mat-icon>rate_review</mat-icon></div>
+            <div class="action-text">
+              <span class="action-name">Submit Review</span>
+              <span class="action-desc">Evaluate performance</span>
+            </div>
+            <mat-icon class="action-arrow">chevron_right</mat-icon>
+          </button>
+          <button class="action-btn report-btn" (click)="navigateToAnalytics()">
+            <div class="action-icon"><mat-icon>bar_chart</mat-icon></div>
+            <div class="action-text">
+              <span class="action-name">Analytics</span>
+              <span class="action-desc">View reports</span>
+            </div>
+            <mat-icon class="action-arrow">chevron_right</mat-icon>
+          </button>
+        </div>
+      </mat-card>
+    </div><!-- /main-grid -->
+
+    <!-- My Team Table -->
+    <mat-card class="content-card team-card" *ngIf="myTeam.length > 0">
+      <div class="card-head">
+        <div class="card-title"><mat-icon>groups</mat-icon> My Team</div>
+        <button mat-button color="primary" (click)="navigateToEmployees()" class="view-all-btn">
+          View all <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <div class="card-body team-body">
+        <div class="team-row" *ngFor="let emp of myTeam"
+             (click)="navigateToEmployee(emp.id)" matTooltip="View profile">
+          <div class="team-avatar">{{ emp.firstName.charAt(0) }}{{ emp.lastName.charAt(0) }}</div>
+          <div class="team-info">
+            <span class="team-name">{{ emp.firstName }} {{ emp.lastName }}</span>
+            <span class="team-pos">{{ emp.position }}</span>
+          </div>
+          <div class="team-status-wrap">
+            <span class="team-status" [ngClass]="emp.status">{{ emp.status }}</span>
+          </div>
+          <div class="team-rating" *ngIf="getTeamMemberRating(emp.id) > 0">
+            <span class="team-score">{{ getTeamMemberRating(emp.id) | number:'1.1-1' }}</span>
+            <mat-icon class="star-icon">star</mat-icon>
+          </div>
+          <div class="team-rating no-data" *ngIf="getTeamMemberRating(emp.id) === 0">
+            <span class="team-score-na">—</span>
+          </div>
+          <button mat-icon-button class="team-review-btn"
+                  (click)="$event.stopPropagation(); navigateToReviewForEmployee(emp.id)"
+                  matTooltip="Submit review">
             <mat-icon>rate_review</mat-icon>
-            Submit Review
-          </button>
-          <button mat-raised-button>
-            <mat-icon>assessment</mat-icon>
-            Generate Report
           </button>
         </div>
-      </mat-card-content>
+      </div>
     </mat-card>
-  </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+      <mat-card class="content-card chart-card" *ngIf="pieChartData.length > 0">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>donut_large</mat-icon> Rating Distribution</div>
+        </div>
+        <div class="chart-body">
+          <ngx-charts-pie-chart
+            [results]="pieChartData"
+            [scheme]="colorScheme"
+            [legend]="true"
+            [labels]="false"
+            [doughnut]="true"
+            [view]="[380, 260]">
+          </ngx-charts-pie-chart>
+        </div>
+      </mat-card>
+
+      <mat-card class="content-card chart-card" *ngIf="barChartData.length > 0">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>equalizer</mat-icon> Avg Score by Category</div>
+        </div>
+        <div class="chart-body">
+          <ngx-charts-bar-vertical
+            [results]="barChartData"
+            [scheme]="barColorScheme"
+            [legend]="false"
+            [xAxis]="true"
+            [yAxis]="true"
+            [yScaleMax]="5"
+            [view]="[420, 260]">
+          </ngx-charts-bar-vertical>
+        </div>
+      </mat-card>
+
+      <mat-card class="content-card chart-card dept-chart" *ngIf="departmentBarData.length > 0">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>business</mat-icon> Department Comparison</div>
+        </div>
+        <div class="chart-body">
+          <ngx-charts-bar-horizontal
+            [results]="departmentBarData"
+            [scheme]="barColorScheme"
+            [legend]="false"
+            [xAxis]="true"
+            [yAxis]="true"
+            [xScaleMax]="5"
+            [view]="[700, 220]">
+          </ngx-charts-bar-horizontal>
+        </div>
+      </mat-card>
+    </div><!-- /charts-grid -->
+
+  </ng-container>
+  <!-- END MANAGER -->
+
+
+  <!-- ══════════════════════════════════════════════════════
+       ███  E M P L O Y E E  D A S H B O A R D
+  ══════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isEmployee">
+
+    <!-- Employee Profile Banner -->
+    <div class="emp-profile-banner" *ngIf="myEmployee">
+      <div class="emp-avatar-lg">
+        {{ myEmployee.firstName.charAt(0) }}{{ myEmployee.lastName.charAt(0) }}
+      </div>
+      <div class="emp-info">
+        <h2>{{ myEmployee.firstName }} {{ myEmployee.lastName }}</h2>
+        <p>{{ myEmployee.position }} &nbsp;·&nbsp; Dept. #{{ myEmployee.departmentId }}</p>
+        <p class="emp-email"><mat-icon>email</mat-icon> {{ myEmployee.email }}</p>
+      </div>
+      <div class="emp-status-chip" [ngClass]="myEmployee.status">
+        <mat-icon>{{ myEmployee.status === 'active' ? 'verified' : 'pause_circle' }}</mat-icon>
+        {{ myEmployee.status | titlecase }}
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrap rating"><mat-icon>star</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ myAverageRating | number:'1.1-1' }}</div>
+          <div class="stat-label">Avg. Rating</div>
+          <div class="stat-sub">All-time average</div>
+        </div>
+        <div class="stat-trend" [ngClass]="myAverageRating >= 4 ? 'up' : 'warn'">
+          <mat-icon>{{ myAverageRating >= 4 ? 'trending_up' : 'trending_flat' }}</mat-icon>
+          {{ getRatingLabel(myAverageRating) }}
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap total"><mat-icon>history</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ myPerformanceRecords.length }}</div>
+          <div class="stat-label">Reviews Done</div>
+          <div class="stat-sub">Performance records</div>
+        </div>
+        <div class="stat-trend up"><mat-icon>check_circle</mat-icon>Complete</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap employees"><mat-icon>event</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ myReviews.length }}</div>
+          <div class="stat-label">My Reviews</div>
+          <div class="stat-sub">Scheduled / completed</div>
+        </div>
+        <div class="stat-trend up"><mat-icon>event</mat-icon>Scheduled</div>
+      </div>
+
+      <div class="stat-card" *ngIf="myLatestRecord">
+        <div class="stat-icon-wrap reviews"><mat-icon>leaderboard</mat-icon></div>
+        <div class="stat-body">
+          <div class="stat-num">{{ myLatestRecord.overallRating | number:'1.1-1' }}</div>
+          <div class="stat-label">Latest Score</div>
+          <div class="stat-sub">{{ myLatestRecord.period }}</div>
+        </div>
+        <div class="stat-trend" [ngClass]="getRatingClass(myLatestRecord.overallRating)">
+          <mat-icon>grade</mat-icon>{{ getRatingLabel(myLatestRecord.overallRating) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Employee Main Grid -->
+    <div class="main-grid emp-main-grid">
+
+      <!-- Latest Performance Record -->
+      <mat-card class="content-card emp-latest-card" *ngIf="myLatestRecord">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>grade</mat-icon> Latest Performance Review</div>
+          <span class="period-badge">{{ myLatestRecord.period }}</span>
+        </div>
+        <div class="card-body">
+          <div class="overall-rating-row">
+            <div class="big-rating" [ngClass]="getRatingClass(myLatestRecord.overallRating)">
+              {{ myLatestRecord.overallRating | number:'1.1-1' }}
+            </div>
+            <div class="rating-label-wrap">
+              <div class="rating-stars">{{ getRatingStars(myLatestRecord.overallRating) }}</div>
+              <div class="rating-lbl" [ngClass]="getRatingClass(myLatestRecord.overallRating)">
+                {{ getRatingLabel(myLatestRecord.overallRating) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-label">Productivity</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.productivityScore * 20" color="primary"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.productivityScore | number:'1.1-1' }}</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Quality</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.qualityScore * 20" color="primary"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.qualityScore | number:'1.1-1' }}</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Communication</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.communicationScore * 20" color="accent"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.communicationScore | number:'1.1-1' }}</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Teamwork</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.teamworkScore * 20" color="accent"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.teamworkScore | number:'1.1-1' }}</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Innovation</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.innovationScore * 20" color="warn"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.innovationScore | number:'1.1-1' }}</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Attendance</div>
+              <mat-progress-bar mode="determinate" [value]="myLatestRecord.attendanceScore * 20" color="warn"></mat-progress-bar>
+              <div class="score-val">{{ myLatestRecord.attendanceScore | number:'1.1-1' }}</div>
+            </div>
+          </div>
+
+          <div class="feedback-box" *ngIf="myLatestRecord.comments">
+            <mat-icon>comment</mat-icon>
+            <p>{{ myLatestRecord.comments }}</p>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Review History -->
+      <mat-card class="content-card emp-history-card">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>history</mat-icon> Review History</div>
+        </div>
+        <div class="card-body">
+          <div *ngIf="myPerformanceRecords.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon><p>No performance records yet</p>
+          </div>
+          <div *ngFor="let rec of myPerformanceRecords" class="history-row">
+            <div class="history-period">{{ rec.period }}</div>
+            <div class="history-bar-wrap">
+              <div class="history-bar" [style.width.%]="rec.overallRating * 20"
+                   [ngClass]="getRatingClass(rec.overallRating)"></div>
+            </div>
+            <div class="history-score" [ngClass]="getRatingClass(rec.overallRating)">
+              {{ rec.overallRating | number:'1.1-1' }}
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Scheduled Reviews -->
+      <mat-card class="content-card emp-reviews-card">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>event</mat-icon> My Scheduled Reviews</div>
+        </div>
+        <div class="card-body">
+          <div *ngIf="myReviews.length === 0" class="empty-state">
+            <mat-icon>event_available</mat-icon><p>No scheduled reviews</p>
+          </div>
+          <div *ngFor="let review of myReviews" class="review-row">
+            <div class="review-type-icon">
+              <mat-icon>{{ review.reviewType === 'annual' ? 'event_repeat' : 'pending_actions' }}</mat-icon>
+            </div>
+            <div class="review-meta">
+              <span class="review-emp">{{ review.reviewType | titlecase }} Review</span>
+              <span class="review-type">Due: {{ review.dueDate | date:'MMM d, y' }}</span>
+            </div>
+            <span class="status-dot" [ngClass]="review.status">{{ review.status }}</span>
+          </div>
+        </div>
+      </mat-card>
+    </div><!-- /emp-main-grid -->
+
+    <!-- Employee Charts -->
+    <div class="charts-grid"
+         *ngIf="ratingTrendData.length > 0 || scoreBreakdownData.length > 0">
+
+      <mat-card class="content-card chart-card" *ngIf="ratingTrendData.length > 0">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>show_chart</mat-icon> Rating Trend</div>
+        </div>
+        <div class="chart-body">
+          <ngx-charts-line-chart
+            [results]="ratingTrendData"
+            [scheme]="colorScheme"
+            [legend]="false"
+            [xAxis]="true"
+            [yAxis]="true"
+            [yScaleMin]="0"
+            [yScaleMax]="5"
+            [view]="[460, 260]">
+          </ngx-charts-line-chart>
+        </div>
+      </mat-card>
+
+      <mat-card class="content-card chart-card" *ngIf="scoreBreakdownData.length > 0">
+        <div class="card-head">
+          <div class="card-title"><mat-icon>equalizer</mat-icon> Latest Score Breakdown</div>
+        </div>
+        <div class="chart-body">
+          <ngx-charts-bar-vertical
+            [results]="scoreBreakdownData"
+            [scheme]="barColorScheme"
+            [legend]="false"
+            [xAxis]="true"
+            [yAxis]="true"
+            [yScaleMax]="5"
+            [view]="[420, 260]">
+          </ngx-charts-bar-vertical>
+        </div>
+      </mat-card>
+    </div><!-- /emp charts-grid -->
+
+  </ng-container>
+  <!-- END EMPLOYEE -->
+
 </div>

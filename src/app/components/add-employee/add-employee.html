@@ -1,0 +1,234 @@
+<div class="add-emp-container">
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-info">
+      <div class="header-badge">
+        <mat-icon>person_add</mat-icon>
+        <span>Manager · Add Employee</span>
+      </div>
+      <h1>Add New Employee</h1>
+      <p>Fill in the details to register a new team member</p>
+    </div>
+  </div>
+
+  <div class="add-emp-body">
+
+    <!-- ── Preview Card ── -->
+    <div class="preview-card">
+      <div class="preview-avatar">{{ initials }}</div>
+      <div class="preview-name">{{ previewName }}</div>
+      <div class="preview-position">{{ employmentForm.get('position')?.value || 'Position' }}</div>
+      <div class="preview-dept" *ngIf="employmentForm.get('departmentId')?.value">
+        <mat-icon>business</mat-icon>
+        {{ getDepartmentName(+employmentForm.get('departmentId')?.value) }}
+      </div>
+      <div class="preview-status" [ngClass]="employmentForm.get('status')?.value || 'active'">
+        <span class="status-dot-sm"></span>
+        {{ (employmentForm.get('status')?.value || 'active') | titlecase }}
+      </div>
+
+      <div class="preview-divider"></div>
+
+      <div class="preview-field" *ngIf="personalForm.get('email')?.value">
+        <mat-icon>email</mat-icon>
+        <span>{{ personalForm.get('email')?.value }}</span>
+      </div>
+      <div class="preview-field" *ngIf="personalForm.get('phoneNumber')?.value">
+        <mat-icon>phone</mat-icon>
+        <span>{{ personalForm.get('phoneNumber')?.value }}</span>
+      </div>
+      <div class="preview-field" *ngIf="employmentForm.get('salary')?.value">
+        <mat-icon>payments</mat-icon>
+        <span>${{ employmentForm.get('salary')?.value | number }}</span>
+      </div>
+      <div class="preview-field" *ngIf="employmentForm.get('hireDate')?.value">
+        <mat-icon>event</mat-icon>
+        <span>{{ employmentForm.get('hireDate')?.value | date:'MMM d, y' }}</span>
+      </div>
+    </div>
+
+    <!-- ── Stepper Form ── -->
+    <div class="form-area">
+      <mat-stepper linear #stepper class="emp-stepper">
+
+        <!-- Step 1: Personal Info -->
+        <mat-step [stepControl]="personalForm" label="Personal Info">
+          <form [formGroup]="personalForm" class="step-form">
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" placeholder="e.g. Aryan">
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-error *ngIf="personalForm.get('firstName')?.hasError('required')">Required</mat-error>
+                <mat-error *ngIf="personalForm.get('firstName')?.hasError('minlength')">Min 2 characters</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" placeholder="e.g. Sharma">
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-error *ngIf="personalForm.get('lastName')?.hasError('required')">Required</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email Address</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="aryan.sharma@company.com">
+              <mat-icon matPrefix>email</mat-icon>
+              <mat-error *ngIf="personalForm.get('email')?.hasError('required')">Required</mat-error>
+              <mat-error *ngIf="personalForm.get('email')?.hasError('email')">Enter a valid email</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Phone Number (optional)</mat-label>
+              <input matInput formControlName="phoneNumber" placeholder="+91 98765 43210">
+              <mat-icon matPrefix>phone</mat-icon>
+            </mat-form-field>
+
+            <div class="step-actions">
+              <span></span>
+              <button mat-raised-button color="primary" matStepperNext type="button">
+                Next <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 2: Employment Details -->
+        <mat-step [stepControl]="employmentForm" label="Employment">
+          <form [formGroup]="employmentForm" class="step-form">
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Job Title / Position</mat-label>
+              <input matInput formControlName="position" placeholder="e.g. Senior Developer">
+              <mat-icon matPrefix>work</mat-icon>
+              <mat-error *ngIf="employmentForm.get('position')?.hasError('required')">Required</mat-error>
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Department</mat-label>
+                <mat-select formControlName="departmentId">
+                  <mat-option *ngFor="let dept of departments" [value]="dept.id">
+                    {{ dept.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>business</mat-icon>
+                <mat-error>Required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="active">Active</mat-option>
+                  <mat-option value="on-leave">On Leave</mat-option>
+                  <mat-option value="inactive">Inactive</mat-option>
+                </mat-select>
+                <mat-icon matPrefix>toggle_on</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Annual Salary ($)</mat-label>
+                <input matInput formControlName="salary" type="number" placeholder="75000">
+                <mat-icon matPrefix>payments</mat-icon>
+                <mat-error *ngIf="employmentForm.get('salary')?.hasError('required')">Required</mat-error>
+                <mat-error *ngIf="employmentForm.get('salary')?.hasError('min')">Must be > 0</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Hire Date</mat-label>
+                <input matInput type="date" formControlName="hireDate">
+                <mat-icon matPrefix>event</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Manager (optional)</mat-label>
+              <mat-select formControlName="managerId">
+                <mat-option [value]="''">No Manager</mat-option>
+                <mat-option *ngFor="let emp of employees" [value]="emp.id">
+                  {{ emp.firstName }} {{ emp.lastName }} — {{ emp.position }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>supervisor_account</mat-icon>
+            </mat-form-field>
+
+            <div class="step-actions">
+              <button mat-stroked-button matStepperPrevious type="button">
+                <mat-icon>arrow_back</mat-icon> Back
+              </button>
+              <button mat-raised-button color="primary" matStepperNext type="button">
+                Review <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Confirm -->
+        <mat-step label="Confirm">
+          <div class="confirm-step">
+            <div class="confirm-title">
+              <mat-icon>check_circle</mat-icon>
+              <span>Ready to Add Employee</span>
+            </div>
+
+            <div class="confirm-grid">
+              <div class="confirm-item">
+                <div class="confirm-lbl">Full Name</div>
+                <div class="confirm-val">{{ personalForm.get('firstName')?.value }} {{ personalForm.get('lastName')?.value }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Email</div>
+                <div class="confirm-val">{{ personalForm.get('email')?.value }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Position</div>
+                <div class="confirm-val">{{ employmentForm.get('position')?.value }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Department</div>
+                <div class="confirm-val">{{ getDepartmentName(+employmentForm.get('departmentId')?.value) }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Salary</div>
+                <div class="confirm-val">${{ employmentForm.get('salary')?.value | number }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Hire Date</div>
+                <div class="confirm-val">{{ employmentForm.get('hireDate')?.value | date:'MMM d, y' }}</div>
+              </div>
+              <div class="confirm-item">
+                <div class="confirm-lbl">Status</div>
+                <div class="confirm-val">{{ employmentForm.get('status')?.value | titlecase }}</div>
+              </div>
+              <div class="confirm-item" *ngIf="personalForm.get('phoneNumber')?.value">
+                <div class="confirm-lbl">Phone</div>
+                <div class="confirm-val">{{ personalForm.get('phoneNumber')?.value }}</div>
+              </div>
+            </div>
+
+            <div class="step-actions confirm-actions">
+              <button mat-stroked-button matStepperPrevious type="button">
+                <mat-icon>arrow_back</mat-icon> Edit
+              </button>
+              <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="submitting" class="submit-btn">
+                <mat-spinner *ngIf="submitting" diameter="18"></mat-spinner>
+                <mat-icon *ngIf="!submitting">person_add</mat-icon>
+                {{ submitting ? 'Adding…' : 'Add Employee' }}
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+      </mat-stepper>
+    </div>
+
+  </div>
+</div>

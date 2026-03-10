@@ -1,14 +1,20 @@
 <div class="employee-detail-container" *ngIf="!loading && employee">
   <!-- Header -->
   <div class="page-header">
-    <button mat-icon-button (click)="goBack()">
+    <button mat-icon-button (click)="goBack()" matTooltip="Back to Employees">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1>Employee Details</h1>
+    <div class="header-actions" *ngIf="currentUserRole === 'manager'">
+      <button mat-raised-button color="accent" (click)="submitReview()">
+        <mat-icon>rate_review</mat-icon> Submit Review
+      </button>
+    </div>
   </div>
 
   <!-- Employee Profile Card -->
   <mat-card class="profile-card">
+    <div class="profile-banner"></div>
     <mat-card-content>
       <div class="profile-header">
         <div class="avatar-large">
@@ -112,6 +118,46 @@
           <div *ngIf="performanceRecords.length === 0" class="no-data">
             <mat-icon>assessment</mat-icon>
             <p>No performance records available</p>
+            <button mat-raised-button color="primary" *ngIf="currentUserRole === 'manager'" (click)="submitReview()">
+              <mat-icon>rate_review</mat-icon> Submit First Review
+            </button>
+          </div>
+
+          <!-- Performance Trend Chart -->
+          <div *ngIf="ratingTrendData.length > 0" class="chart-section">
+            <h3><mat-icon>show_chart</mat-icon> Performance Trend</h3>
+            <ngx-charts-line-chart
+              [results]="ratingTrendData"
+              [scheme]="colorScheme"
+              [legend]="false"
+              [showXAxisLabel]="true"
+              [showYAxisLabel]="true"
+              xAxisLabel="Period"
+              yAxisLabel="Rating"
+              [xAxis]="true"
+              [yAxis]="true"
+              [yScaleMin]="0"
+              [yScaleMax]="5"
+              [view]="[600, 250]">
+            </ngx-charts-line-chart>
+          </div>
+
+          <!-- Latest Scores Bar Chart -->
+          <div *ngIf="scoreRadarData.length > 0" class="chart-section">
+            <h3><mat-icon>bar_chart</mat-icon> Latest Score Breakdown</h3>
+            <ngx-charts-bar-vertical
+              [results]="scoreRadarData"
+              [scheme]="colorScheme"
+              [legend]="false"
+              [showXAxisLabel]="true"
+              [showYAxisLabel]="true"
+              xAxisLabel="Category"
+              yAxisLabel="Score"
+              [xAxis]="true"
+              [yAxis]="true"
+              [yScaleMax]="5"
+              [view]="[600, 220]">
+            </ngx-charts-bar-vertical>
           </div>
 
           <div *ngFor="let record of performanceRecords" class="performance-record">
@@ -129,49 +175,32 @@
             <div class="scores-grid">
               <div class="score-item">
                 <label>Productivity</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.productivityScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.productivityScore / 5) * 100" color="primary"></mat-progress-bar>
                 <span>{{ record.productivityScore }}</span>
               </div>
-
               <div class="score-item">
                 <label>Quality</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.qualityScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.qualityScore / 5) * 100" color="accent"></mat-progress-bar>
                 <span>{{ record.qualityScore }}</span>
               </div>
-
               <div class="score-item">
                 <label>Communication</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.communicationScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.communicationScore / 5) * 100" color="primary"></mat-progress-bar>
                 <span>{{ record.communicationScore }}</span>
               </div>
-
               <div class="score-item">
                 <label>Teamwork</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.teamworkScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.teamworkScore / 5) * 100" color="accent"></mat-progress-bar>
                 <span>{{ record.teamworkScore }}</span>
               </div>
-
               <div class="score-item">
                 <label>Innovation</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.innovationScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.innovationScore / 5) * 100" color="primary"></mat-progress-bar>
                 <span>{{ record.innovationScore }}</span>
               </div>
-
               <div class="score-item">
                 <label>Attendance</label>
-                <div class="score-bar">
-                  <div class="score-fill" [style.width.%]="(record.attendanceScore / 5) * 100"></div>
-                </div>
+                <mat-progress-bar mode="determinate" [value]="(record.attendanceScore / 5) * 100" color="accent"></mat-progress-bar>
                 <span>{{ record.attendanceScore }}</span>
               </div>
             </div>
@@ -208,18 +237,29 @@
       <!-- Reviews Tab -->
       <mat-tab label="Reviews">
         <div class="tab-content">
+          <div class="reviews-actions" *ngIf="currentUserRole === 'manager'">
+            <button mat-raised-button color="accent" (click)="submitReview()">
+              <mat-icon>rate_review</mat-icon> Submit New Review
+            </button>
+          </div>
+
           <div *ngIf="reviews.length === 0" class="no-data">
             <mat-icon>rate_review</mat-icon>
             <p>No reviews scheduled</p>
           </div>
 
-          <div *ngFor="let review of reviews" class="review-item">
+          <div *ngFor="let review of reviews" class="review-item clickable-review"
+               (click)="openReviewPopup(review)"
+               matTooltip="Click to view full details">
             <div class="review-header">
               <div>
                 <h3>{{ review.reviewType | titlecase }} Review</h3>
                 <p class="review-date">Scheduled: {{ review.reviewDate | date: 'MMM d, y' }}</p>
               </div>
-              <mat-chip [color]="getReviewStatusColor(review.status)">{{ review.status }}</mat-chip>
+              <div class="review-header-right">
+                <mat-chip [color]="getReviewStatusColor(review.status)">{{ review.status }}</mat-chip>
+                <mat-icon class="review-expand-icon">open_in_new</mat-icon>
+              </div>
             </div>
 
             <div class="review-details">
@@ -241,6 +281,147 @@
       </mat-tab>
     </mat-tab-group>
   </mat-card>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     REVIEW DETAIL POPUP
+══════════════════════════════════════════════ -->
+<div class="review-popup-overlay" *ngIf="selectedReview" (click)="closeReviewPopup()">
+  <div class="review-popup" (click)="$event.stopPropagation()">
+
+    <!-- Popup Header -->
+    <div class="popup-header">
+      <div class="popup-header-left">
+        <div class="popup-type-icon">
+          <mat-icon>rate_review</mat-icon>
+        </div>
+        <div>
+          <h2>{{ selectedReview.reviewType | titlecase }} Review</h2>
+          <p class="popup-sub">{{ selectedReview.reviewDate | date:'longDate' }}</p>
+        </div>
+      </div>
+      <div class="popup-header-right">
+        <span class="popup-status-badge" [ngClass]="selectedReview.status">
+          {{ selectedReview.status }}
+        </span>
+        <button class="popup-close-btn" (click)="closeReviewPopup()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Timeline row -->
+    <div class="popup-timeline">
+      <div class="tl-item">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span class="tl-label">Due Date</span>
+          <span class="tl-val">{{ selectedReview.dueDate | date:'mediumDate' }}</span>
+        </div>
+      </div>
+      <div class="tl-item" *ngIf="selectedReview.submittedDate">
+        <mat-icon class="done">check_circle</mat-icon>
+        <div>
+          <span class="tl-label">Submitted</span>
+          <span class="tl-val">{{ selectedReview.submittedDate | date:'mediumDate' }}</span>
+        </div>
+      </div>
+      <div class="tl-item" *ngIf="selectedReview.approvedDate">
+        <mat-icon class="approved">verified</mat-icon>
+        <div>
+          <span class="tl-label">Approved</span>
+          <span class="tl-val">{{ selectedReview.approvedDate | date:'mediumDate' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance record section (if linked) -->
+    <ng-container *ngIf="selectedReviewRecord">
+
+      <!-- Overall rating -->
+      <div class="popup-rating-row">
+        <div class="popup-overall-circle"
+             [style.border-color]="getScoreColor(selectedReviewRecord.overallRating)">
+          <span class="popup-rating-num">{{ selectedReviewRecord.overallRating | number:'1.1-1' }}</span>
+          <span class="popup-rating-max">/5</span>
+        </div>
+        <div class="popup-rating-meta">
+          <span class="popup-rating-level"
+                [style.color]="getScoreColor(selectedReviewRecord.overallRating)">
+            {{ getRatingLevel(selectedReviewRecord.overallRating) }}
+          </span>
+          <span class="popup-period">{{ selectedReviewRecord.period }}</span>
+        </div>
+      </div>
+
+      <!-- Score bars -->
+      <div class="popup-section">
+        <div class="popup-section-title"><mat-icon>bar_chart</mat-icon> Score Breakdown</div>
+        <div class="popup-score-bars">
+          <div class="psb-row" *ngFor="let s of [
+            {label:'Productivity', val: selectedReviewRecord.productivityScore},
+            {label:'Quality',      val: selectedReviewRecord.qualityScore},
+            {label:'Communication',val: selectedReviewRecord.communicationScore},
+            {label:'Teamwork',     val: selectedReviewRecord.teamworkScore},
+            {label:'Innovation',   val: selectedReviewRecord.innovationScore},
+            {label:'Attendance',   val: selectedReviewRecord.attendanceScore}
+          ]">
+            <span class="psb-label">{{ s.label }}</span>
+            <div class="psb-track">
+              <div class="psb-fill"
+                   [style.width.%]="getScorePercent(s.val)"
+                   [style.background]="getScoreColor(s.val)">
+              </div>
+            </div>
+            <span class="psb-val" [style.color]="getScoreColor(s.val)">{{ s.val }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="popup-section" *ngIf="selectedReviewRecord.comments">
+        <div class="popup-section-title"><mat-icon>comment</mat-icon> Manager's Comments</div>
+        <p class="popup-comments">{{ selectedReviewRecord.comments }}</p>
+      </div>
+
+      <!-- Achievements / Goals / Improvements -->
+      <div class="popup-lists-grid">
+        <div class="popup-list-col" *ngIf="selectedReviewRecord.achievements.length > 0">
+          <div class="popup-list-title achievement"><mat-icon>emoji_events</mat-icon> Achievements</div>
+          <ul class="popup-list">
+            <li *ngFor="let a of selectedReviewRecord.achievements">{{ a }}</li>
+          </ul>
+        </div>
+        <div class="popup-list-col" *ngIf="selectedReviewRecord.goals.length > 0">
+          <div class="popup-list-title goal"><mat-icon>flag</mat-icon> Goals</div>
+          <ul class="popup-list">
+            <li *ngFor="let g of selectedReviewRecord.goals">{{ g }}</li>
+          </ul>
+        </div>
+        <div class="popup-list-col" *ngIf="selectedReviewRecord.areasOfImprovement.length > 0">
+          <div class="popup-list-title improvement"><mat-icon>trending_up</mat-icon> Areas to Improve</div>
+          <ul class="popup-list">
+            <li *ngFor="let i of selectedReviewRecord.areasOfImprovement">{{ i }}</li>
+          </ul>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- No performance record yet -->
+    <div class="popup-no-record" *ngIf="!selectedReviewRecord">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Performance record not submitted yet.</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="popup-footer">
+      <button class="popup-close-full-btn" (click)="closeReviewPopup()">
+        <mat-icon>close</mat-icon> Close
+      </button>
+    </div>
+
+  </div>
 </div>
 
 <div class="loading" *ngIf="loading">

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -9,10 +9,17 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { EmployeeService } from '../../services/employee.service';
 import { PerformanceService } from '../../services/performance.service';
 import { Employee, Department } from '../../models';
+import { EmployeeFilterPipe } from '../../pipes/employee-filter.pipe';
+import { TopPerformerDirective } from '../../directives/top-performer.directive';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-employee-list',
@@ -26,23 +33,35 @@ import { Employee, Department } from '../../models';
     MatChipsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTooltipModule,
+    MatBadgeModule,
+    EmployeeFilterPipe,
+    TopPerformerDirective
   ],
   templateUrl: './employee-list.html',
   styleUrl: './employee-list.css',
 })
-export class EmployeeList implements OnInit {
+export class EmployeeList implements OnInit, OnDestroy {
   employees: Employee[] = [];
   filteredEmployees: Employee[] = [];
   departments: Department[] = [];
   displayedColumns = ['name', 'email', 'position', 'department', 'status', 'rating', 'actions'];
   searchTerm = '';
   selectedDepartment = 'all';
+  minRating = 0;
   employeePerformance: Map<number, number> = new Map();
+
+  private destroy$ = new Subject<void>();
+
+  get isAdmin(): boolean {
+    return this.authService.currentUserValue?.role === 'manager';
+  }
 
   constructor(
     private employeeService: EmployeeService,
     private performanceService: PerformanceService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -52,36 +71,47 @@ export class EmployeeList implements OnInit {
     this.loadPerformanceData();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadEmployees(): void {
-    this.employeeService.getAllEmployees().subscribe(employees => {
-      this.employees = employees;
-      this.applyFilters();
-    });
+    this.employeeService.getAllEmployees()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(employees => {
+        this.employees = employees;
+        this.applyFilters();
+      });
   }
 
   loadDepartments(): void {
-    this.employeeService.getAllDepartments().subscribe(departments => {
-      this.departments = departments;
-    });
+    this.employeeService.getAllDepartments()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(departments => {
+        this.departments = departments;
+      });
   }
 
   loadPerformanceData(): void {
-    this.performanceService.getAllPerformanceRecords().subscribe(records => {
-      // Calculate average rating per employee
-      const employeeRatings: Map<number, number[]> = new Map();
-      
-      records.forEach(record => {
-        if (!employeeRatings.has(record.employeeId)) {
-          employeeRatings.set(record.employeeId, []);
-        }
-        employeeRatings.get(record.employeeId)!.push(record.overallRating);
+    // Use the live BehaviorSubject stream so ratings update when a review is added
+    this.performanceService.performanceRecords$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(records => {
+        const employeeRatings: Map<number, number[]> = new Map();
+        records.forEach(record => {
+          if (!employeeRatings.has(record.employeeId)) {
+            employeeRatings.set(record.employeeId, []);
+          }
+          employeeRatings.get(record.employeeId)!.push(record.overallRating);
+        });
+        const updated: Map<number, number> = new Map();
+        employeeRatings.forEach((ratings, employeeId) => {
+          const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+          updated.set(employeeId, avg);
+        });
+        this.employeePerformance = updated;
       });
-
-      employeeRatings.forEach((ratings, employeeId) => {
-        const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
-        this.employeePerformance.set(employeeId, avg);
-      });
-    });
   }
 
   applyFilters(): void {
@@ -104,6 +134,14 @@ export class EmployeeList implements OnInit {
       filtered = filtered.filter(emp => emp.departmentId === deptId);
     }
 
+    // Apply minimum rating filter
+    if (this.minRating > 0) {
+      filtered = filtered.filter(emp => {
+        const rating = this.employeePerformance.get(emp.id) || 0;
+        return rating >= this.minRating;
+      });
+    }
+
     this.filteredEmployees = filtered;
   }
 
@@ -112,6 +150,10 @@ export class EmployeeList implements OnInit {
   }
 
   onDepartmentChange(): void {
+    this.applyFilters();
+  }
+
+  onMinRatingChange(): void {
     this.applyFilters();
   }
 
@@ -144,7 +186,15 @@ export class EmployeeList implements OnInit {
   }
 
   viewEmployee(employee: Employee): void {
-    this.router.navigate(['/employee-detail', employee.id]);
+    this.router.navigate(['/employee', employee.id]);
+  }
+
+  reviewEmployee(employee: Employee): void {
+    this.router.navigate(['/performance-review'], { queryParams: { employeeId: employee.id } });
+  }
+
+  navigateToAdd(): void {
+    this.router.navigate(['/employees/add']);
   }
 
   goBack(): void {

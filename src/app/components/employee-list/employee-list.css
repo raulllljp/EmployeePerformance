@@ -1,89 +1,158 @@
+/* ===================================================
+   Employee List
+   =================================================== */
 .employee-list-container {
-  padding: 24px;
-  background-color: #f5f5f5;
+  padding: 28px 32px;
+  background: var(--bg);
   min-height: 100vh;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
+/* ── Page header banner ── */
 .page-header {
+  background: var(--grad-primary);
+  border-radius: var(--radius-xl);
+  padding: 26px 32px;
+  margin-bottom: 22px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 8px 28px rgba(99,102,241,.28);
+  animation: fadeInUp .35s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -40px;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,.07);
+  border-radius: 50%;
+}
+
+.page-header button[mat-icon-button] {
+  color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  z-index: 1;
 }
 
 .header-left h1 {
-  margin: 0 0 4px 0;
-  font-size: 28px;
-  font-weight: 500;
-  color: #333;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  margin-bottom: 3px;
 }
 
 .header-left p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
+  color: rgba(255,255,255,.8);
+  font-size: 13px;
 }
 
+.add-emp-btn {
+  background: rgba(255,255,255,.2) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  backdrop-filter: blur(8px);
+  z-index: 1;
+  flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* ── Filters card ── */
 .filters-card {
-  margin-bottom: 24px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-xs) !important;
+  animation: fadeInUp .35s ease .05s both;
+}
+
+.filters-card mat-card-content {
+  padding: 16px 20px !important;
 }
 
 .filters {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.search-field {
-  flex: 1;
-  min-width: 250px;
-}
-
-.department-field {
-  min-width: 200px;
-}
+.search-field   { flex: 2; min-width: 220px; }
+.department-field { min-width: 180px; }
+.rating-field   { min-width: 160px; }
 
 .filter-summary {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 14px;
+  background: var(--primary-light);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
-.table-card mat-card-content {
-  padding: 0;
+/* ── Table card ── */
+.table-card {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border: 1px solid var(--border) !important;
+  animation: fadeInUp .35s ease .1s both;
+  overflow: hidden;
 }
 
-.employee-table {
-  width: 100%;
+.table-card mat-card-content { padding: 0 !important; }
+
+.employee-table { width: 100%; }
+
+.employee-table th.mat-mdc-header-cell {
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-muted);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
 }
 
-.employee-table th {
-  background-color: #fafafa;
-  font-weight: 600;
-  color: #333;
-  padding: 16px;
-}
-
-.employee-table td {
-  padding: 16px;
+.employee-table td.mat-mdc-cell {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .employee-row {
-  transition: background-color 0.2s;
   cursor: pointer;
+  transition: background var(--transition);
+}
+.employee-row:hover td.mat-mdc-cell {
+  background: #f5f3ff;
 }
 
-.employee-row:hover {
-  background-color: #f5f5f5;
-}
-
+/* ── Employee name cell ── */
 .employee-name {
   display: flex;
   align-items: center;
@@ -93,127 +162,104 @@
 .avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  border-radius: 12px;
+  background: var(--grad-primary);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 13px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99,102,241,.3);
 }
 
 .name {
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 .id {
-  font-size: 12px;
-  color: #999;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-family: 'Roboto Mono', monospace;
 }
 
+/* ── Email ── */
 .email-link {
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
 }
+.email-link:hover { text-decoration: underline; }
 
-.email-link:hover {
-  text-decoration: underline;
-}
-
+/* ── Rating ── */
 .rating {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.stars {
-  color: #ffa726;
-  font-size: 16px;
-  letter-spacing: 2px;
-}
+.stars { color: #f59e0b; font-size: 14px; letter-spacing: 1px; }
 
 .rating-value {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
 }
 
-.no-rating {
-  color: #999;
-  font-size: 12px;
-  font-style: italic;
+.top-performer-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  vertical-align: middle;
+  color: #f59e0b;
 }
 
+.no-rating { color: var(--text-muted); font-size: 12px; font-style: italic; }
+
+/* ── No data ── */
 .no-data {
   text-align: center;
   padding: 64px 24px;
-  color: #999;
+  color: var(--text-muted);
 }
-
 .no-data mat-icon {
-  font-size: 64px;
-  height: 64px;
-  width: 64px;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  font-size: 52px; height: 52px; width: 52px;
+  margin: 0 auto 12px; display: block; opacity: .3;
+}
+.no-data p { font-size: 14px; }
+
+/* ── Action buttons in row — review button fades in on row hover ── */
+.mat-mdc-row .mat-mdc-cell button[mat-icon-button][color="accent"] {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.mat-mdc-row:hover .mat-mdc-cell button[mat-icon-button][color="accent"] {
+  opacity: 1;
 }
 
-.no-data p {
-  margin: 0;
-  font-size: 16px;
+/* ── Highlight top performer rows ── */
+.top-performer-row td.mat-mdc-cell {
+  background: #fefce8;
 }
 
-mat-chip {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Responsive design */
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .employee-list-container {
-    padding: 16px;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .filters {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .search-field,
-  .department-field {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .employee-table {
-    font-size: 12px;
-  }
-
-  .employee-table th,
-  .employee-table td {
-    padding: 8px;
-  }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-
-  /* Hide some columns on mobile */
-  .mat-column-email,
-  .mat-column-department {
-    display: none;
-  }
+  .employee-list-container { padding: 16px; }
+  .page-header { padding: 18px 20px; border-radius: var(--radius-lg); }
+  .header-left h1 { font-size: 18px; }
+  .filters { flex-direction: column; }
+  .search-field, .department-field, .rating-field { width: 100%; min-width: auto; }
+  .filter-summary { margin-left: 0; }
+  .employee-table th.mat-mdc-header-cell,
+  .employee-table td.mat-mdc-cell { padding: 10px 12px; }
+  .mat-column-email, .mat-column-department { display: none; }
 }

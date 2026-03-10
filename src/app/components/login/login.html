@@ -1,34 +1,55 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <div class="header-content">
-        <mat-icon class="header-icon">account_circle</mat-icon>
-        <h1>Employee Performance System</h1>
-        <p class="subtitle">Please sign in to continue</p>
+<div class="login-wrapper">
+  <!-- Left decorative panel -->
+  <div class="login-panel-left">
+    <div class="panel-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <span>PerformIQ</span>
       </div>
-    </mat-card-header>
+      <h2>Empower your <br><span class="highlight">workforce</span></h2>
+      <p>Track, review, and celebrate employee performance in one unified platform.</p>
+      <div class="features">
+        <div class="feature-item"><mat-icon>check_circle</mat-icon> Real-time performance analytics</div>
+        <div class="feature-item"><mat-icon>check_circle</mat-icon> 360° employee reviews</div>
+        <div class="feature-item"><mat-icon>check_circle</mat-icon> Department insights &amp; reports</div>
+      </div>
+    </div>
+    <div class="panel-decoration">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+  </div>
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="form-field">
+  <!-- Right form panel -->
+  <div class="login-panel-right">
+    <div class="login-form-wrapper">
+      <div class="form-header">
+        <h1>Welcome back</h1>
+        <p>Sign in to your account</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <div class="input-group">
+          <label>Username</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Username</mat-label>
-            <input matInput formControlName="username" placeholder="Enter username" autocomplete="username">
-            <mat-icon matPrefix>person</mat-icon>
+            <input matInput formControlName="username" placeholder="Enter your username" autocomplete="username">
+            <mat-icon matPrefix class="field-icon">person_outline</mat-icon>
             <mat-error *ngIf="f['username'].invalid && (f['username'].dirty || submitted)">
               Username is required
             </mat-error>
           </mat-form-field>
         </div>
 
-        <div class="form-field">
+        <div class="input-group">
+          <label>Password</label>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
             <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-              placeholder="Enter password" autocomplete="current-password">
-            <mat-icon matPrefix>lock</mat-icon>
-            <button mat-icon-button matSuffix (click)="togglePasswordVisibility()" type="button"
-              [attr.aria-label]="'Toggle password visibility'">
+              placeholder="Enter your password" autocomplete="current-password">
+            <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
+            <button mat-icon-button matSuffix (click)="togglePasswordVisibility()" type="button">
               <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
             </button>
             <mat-error *ngIf="f['password'].invalid && (f['password'].dirty || submitted)">
@@ -37,27 +58,28 @@
           </mat-form-field>
         </div>
 
-        <div *ngIf="error" class="error-message">
-          <mat-icon>error</mat-icon>
-          {{ error }}
+        <div *ngIf="error" class="error-alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
         </div>
 
-        <div class="form-actions">
-          <button mat-raised-button color="primary" type="submit" class="login-button" [disabled]="loading">
-            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-            <span *ngIf="!loading">Sign In</span>
-          </button>
-        </div>
+        <button mat-raised-button color="primary" type="submit" class="login-btn" [disabled]="loading">
+          <mat-spinner *ngIf="loading" diameter="18"></mat-spinner>
+          <mat-icon *ngIf="!loading">login</mat-icon>
+          <span>{{ loading ? 'Signing in...' : 'Sign In' }}</span>
+        </button>
       </form>
 
-      <div class="demo-credentials">
-        <h3>Demo Credentials:</h3>
-        <ul>
-          <li><strong>Admin:</strong> username: admin, password: password123</li>
-          <li><strong>Manager:</strong> username: manager, password: password123</li>
-          <li><strong>Employee:</strong> username: employee, password: password123</li>
-        </ul>
+      <div class="demo-box">
+        <div class="demo-title">
+          <mat-icon>info_outline</mat-icon>
+          Demo credentials
+        </div>
+        <div class="demo-list">
+          <div class="demo-row"><span class="demo-role manager">Manager</span><code>manager / password123</code></div>
+          <div class="demo-row"><span class="demo-role employee">Employee</span><code>employee / password123</code></div>
+        </div>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>

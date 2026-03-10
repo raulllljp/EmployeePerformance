@@ -1,0 +1,88 @@
+<div class="app-shell" [class.collapsed]="collapsed">
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar">
+
+    <!-- Brand -->
+    <div class="sidebar-brand"
+         [ngStyle]="collapsed ? {justifyContent:'center', padding:'15px 0', gap:'0'} : {}">
+      <div class="brand-icon" (click)="toggleCollapse()"
+           [matTooltip]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+           matTooltipPosition="right">
+        <mat-icon>speed</mat-icon>
+      </div>
+      <span class="brand-name" [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden',pointerEvents:'none'} : {}">PerformIQ</span>
+      <button class="collapse-btn" (click)="toggleCollapse()"
+              [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden',margin:'0',pointerEvents:'none'} : {}">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+    </div>
+
+    <!-- User Card -->
+    <div class="sidebar-user"
+         [ngStyle]="collapsed ? {justifyContent:'center', padding:'10px 0', margin:'8px 0', background:'transparent', border:'none'} : {}">
+      <div class="user-avatar" [class.employee]="isEmployee">{{ userInitials }}</div>
+      <div class="user-info"
+           [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden'} : {}">
+        <div class="user-name">{{ currentUser?.username | titlecase }}</div>
+        <div class="user-role" [class.role-employee]="isEmployee">{{ roleLabel }}</div>
+      </div>
+    </div>
+
+    <!-- Nav Label -->
+    <div class="nav-section-label"
+         [ngStyle]="collapsed ? {opacity:'0',height:'0',margin:'0',padding:'0',overflow:'hidden'} : {}">MENU</div>
+
+    <!-- Nav Items -->
+    <nav class="sidebar-nav"
+         [ngStyle]="collapsed ? {padding:'0'} : {}">
+      <a
+        *ngFor="let item of visibleNavItems"
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+        [matTooltip]="collapsed ? item.label : ''"
+        matTooltipPosition="right"
+        [ngStyle]="collapsed ? {justifyContent:'center', padding:'12px 0', gap:'0', background:'transparent', boxShadow:'none'} : {}">
+        <span class="nav-icon"
+              [ngStyle]="collapsed ? {width:'40px', height:'40px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center'} : {}">
+          <mat-icon>{{ item.icon }}</mat-icon>
+        </span>
+        <span class="nav-label"
+              [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden'} : {}">{{ item.label }}</span>
+        <span class="nav-badge" *ngIf="item.badge"
+              [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden'} : {}">{{ item.badge }}</span>
+      </a>
+    </nav>
+
+    <!-- Spacer -->
+    <div class="sidebar-spacer"></div>
+
+    <!-- Logout -->
+    <div class="sidebar-footer"
+         [ngStyle]="collapsed ? {padding:'12px 0 20px'} : {}">
+      <button class="logout-btn" (click)="logout()"
+              [matTooltip]="collapsed ? 'Logout' : ''"
+              matTooltipPosition="right"
+              [ngStyle]="collapsed ? {justifyContent:'center', padding:'12px 0', gap:'0'} : {}">
+        <mat-icon>logout</mat-icon>
+        <span class="nav-label"
+              [ngStyle]="collapsed ? {opacity:'0',width:'0',overflow:'hidden'} : {}">Logout</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ══ Main Content ══ -->
+  <main class="shell-main">
+    <!-- Global HTTP loading bar -->
+    <mat-progress-bar
+      *ngIf="loadingService.loading$ | async"
+      mode="indeterminate"
+      class="global-loading-bar">
+    </mat-progress-bar>
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

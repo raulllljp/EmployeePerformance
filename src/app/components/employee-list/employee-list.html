@@ -10,6 +10,10 @@
         <p>Manage and view all employees</p>
       </div>
     </div>
+    <button mat-raised-button color="primary" class="add-emp-btn" *ngIf="isAdmin" (click)="navigateToAdd()">
+      <mat-icon>person_add</mat-icon>
+      Add Employee
+    </button>
   </div>
 
   <!-- Filters -->
@@ -34,8 +38,20 @@
           <mat-icon matPrefix>business</mat-icon>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="rating-field">
+          <mat-label>Min Rating</mat-label>
+          <mat-select [(ngModel)]="minRating" (ngModelChange)="onMinRatingChange()">
+            <mat-option [value]="0">Any Rating</mat-option>
+            <mat-option [value]="3">3+ Stars</mat-option>
+            <mat-option [value]="4">4+ Stars</mat-option>
+            <mat-option [value]="4.5">Top Performers</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>star</mat-icon>
+        </mat-form-field>
+
         <div class="filter-summary">
-          <mat-chip>{{ filteredEmployees.length }} Employees</mat-chip>
+          <mat-icon style="font-size:14px;height:14px;width:14px;">people</mat-icon>
+          {{ filteredEmployees.length }} Results
         </div>
       </div>
     </mat-card-content>
@@ -49,7 +65,7 @@
         <p>No employees found</p>
       </div>
 
-      <table mat-table [dataSource]="filteredEmployees" *ngIf="filteredEmployees.length > 0" class="employee-table">
+      <table mat-table [dataSource]="employees | employeeFilter:searchTerm:selectedDepartment:minRating:employeePerformance" *ngIf="filteredEmployees.length > 0" class="employee-table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -58,7 +74,7 @@
               <div class="avatar">{{ employee.firstName.charAt(0) }}{{ employee.lastName.charAt(0) }}</div>
               <div>
                 <div class="name">{{ employee.firstName }} {{ employee.lastName }}</div>
-                <div class="id">ID: {{ employee.id }}</div>
+                <div class="id">{{ employee.position }}</div>
               </div>
             </div>
           </td>
@@ -101,6 +117,8 @@
             <div class="rating" *ngIf="getEmployeeRating(employee.id) > 0">
               <span class="stars">{{ getRatingStars(getEmployeeRating(employee.id)) }}</span>
               <span class="rating-value">{{ getEmployeeRating(employee.id) | number: '1.1-1' }}</span>
+              <mat-icon class="top-performer-icon" *ngIf="getEmployeeRating(employee.id) >= 4.5"
+                matTooltip="Top Performer" color="primary">emoji_events</mat-icon>
             </div>
             <span *ngIf="getEmployeeRating(employee.id) === 0" class="no-rating">No reviews</span>
           </td>
@@ -110,14 +128,22 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let employee">
-            <button mat-icon-button color="primary" (click)="viewEmployee(employee)" matTooltip="View Details">
+            <button mat-icon-button color="primary" (click)="viewEmployee(employee); $event.stopPropagation()" matTooltip="View Details">
               <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" *ngIf="isAdmin"
+                    (click)="reviewEmployee(employee); $event.stopPropagation()"
+                    matTooltip="Submit Review">
+              <mat-icon>rate_review</mat-icon>
             </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="employee-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="employee-row"
+            (click)="viewEmployee(row)"
+            [appTopPerformer]="getEmployeeRating(row.id)"
+            [topThreshold]="4.5"></tr>
       </table>
     </mat-card-content>
   </mat-card>

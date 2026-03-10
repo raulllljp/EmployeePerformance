@@ -39,13 +39,13 @@ export class Login implements OnInit {
     private router: Router,
     private authService: AuthService
   ) {
-    // Redirect to dashboard if already logged in
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
-    }
+    // Always show login page — do NOT auto-redirect to dashboard
   }
 
   ngOnInit(): void {
+    // Clear any existing session so login page always starts fresh
+    this.authService.logout();
+
     this.loginForm = this.formBuilder.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
